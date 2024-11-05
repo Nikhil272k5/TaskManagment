@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        header, footer {
+            text-align: center;
+        }
+        .task-container {
+            margin-top: 20px;
+        }
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .task:last-child {
+            border-bottom: none;
+        }
+        .add-task {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+        .add-task input, .add-task select {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-task button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .add-task button:hover {
+            background-color: #218838;
+        }
+        .filter-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .filter-options select, .filter-options input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .timer {
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Manage Your Tasks</h1>
+        </header>
+
+        <div class="task-container" id="taskManager">
+            <h2>Your Tasks</h2>
+            <div class="filter-options">
+                <select id="filterCategory" onchange="filterTasks()">
+                    <option value="">Filter by Category</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                </select>
+                <select id="filterPriority" onchange="filterTasks()">
+                    <option value="">Filter by Priority</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <input type="date" id="filterDueDate" onchange="filterTasks()">
+            </div>
+
+            <div id="taskList"></div>
+
+            <div class="add-task">
+                <input type="text" id="taskInput" placeholder="Task Title" />
+                <input type="date" id="taskDueDate" />
+                <select id="taskCategory">
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                </select>
+                <select id="taskPriority">
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <button onclick="addTask()">Add Task</button>
+            </div>
+
+            <div class="status-bar">
+                <div id="taskStatus"></div>
+                <div class="timer" id="timerDisplay">Timer: 00:00:00</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Personal Task Manager. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        let tasks = [];
+        let timerInterval;
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput').value;
+            const taskDueDate = document.getElementById('taskDueDate').value;
+            const taskCategory = document.getElementById('taskCategory').value;
+            const taskPriority = document.getElementById('taskPriority').value;
+
+            if (!taskInput || !taskDueDate) {
+                alert('Please provide a task title and due date.');
+                return;
+            }
+
+            const task = {
+                title: taskInput,
+                dueDate: taskDueDate,
+                category: taskCategory,
+                priority: taskPriority,
+                completed: false,
+                createdAt: new Date() // Store creation time
+            };
+
+            tasks.push(task);
+            document.getElementById('taskInput').value = '';
+            document.getElementById('taskDueDate').value = '';
+            displayTasks();
+            updateStatusBar();
+            startTimer();
+        }
+
+        function displayTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+                taskDiv.innerHTML = `
+                    <span>${task.title}</span>
+                    <span>Due: ${task.dueDate}</span>
+                    <span>Category: ${task.category}</span>
+                    <span>Priority: ${task.priority}</span>
+                    <div>
+                        <button onclick="completeTask(${index})">Complete</button>
+                        <button onclick="deleteTask(${index})">Delete</button>
+                    </div>
+                    <span class="timer">${formatTimer(task.createdAt)}</span>
+                `;
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        function completeTask(index) {
+            tasks[index].completed = true;
+            displayTasks();
+            updateStatusBar();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            displayTasks();
+            updateStatusBar();
+        }
+
+        function filterTasks() {
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const priorityFilter = document.getElementById('filterPriority').value;
+            const dueDateFilter = document.getElementById('filterDueDate').value;
+
+            let filteredTasks = tasks;
+
+            if (categoryFilter) {
+                filteredTasks = filteredTasks.filter(task => task.category === categoryFilter);
+            }
+            if (priorityFilter) {
+                filteredTasks = filteredTasks.filter(task => task.priority === priorityFilter);
+            }
+            if (dueDateFilter) {
+                filteredTasks = filteredTasks.filter(task => task.dueDate === dueDateFilter);
+            }
+
+            displayFilteredTasks(filteredTasks);
+        }
+
+        function displayFilteredTasks(filteredTasks) {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            filteredTasks.forEach((task, index) => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+                taskDiv.innerHTML = `
+                    <span>${task.title}</span>
+                    <span>Due: ${task.dueDate}</span>
+                    <span>Category: ${task.category}</span>
+                    <span>Priority: ${task.priority}</span>
+                    <div>
+                        <button onclick="completeTask(${index})">Complete</button>
+                        <button onclick="deleteTask(${index})">Delete</button>
+                    </div>
+                    <span class="timer">${formatTimer(task.createdAt)}</span>
+                `;
+                taskList.appendChild(taskDiv);
+            });
+            updateStatusBar();
+        }
+
+        function formatTimer(createdAt) {
+            const elapsedTime = Math.floor((new Date() - new Date(createdAt)) / 1000); // in seconds
+            const hours = Math.floor(elapsedTime / 3600);
+            const minutes = Math.floor((elapsedTime % 3600) / 60);
+            const seconds = elapsedTime % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(displayTasks, 1000); // Update timer every second
+        }
+
+        function updateStatusBar() {
+            const completedTasks = tasks.filter(task => task.completed).length;
+            const totalTasks = tasks.length;
+            const taskStatus = document.getElementById('taskStatus');
+            taskStatus.innerHTML = `Tasks Completed: ${completedTasks} / ${totalTasks}`;
+        }
+    </script>
+</body>
+</html>

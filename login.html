@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Productivity & Daily Task Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .login-form, .task-container, .profile-container, .dashboard {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .forgot-password {
+            margin-bottom: 15px;
+            text-align: right;
+            font-size: 0.9em;
+        }
+        .login-button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .login-button:hover {
+            background-color: #218838;
+        }
+        .social-login {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .facebook-button { background-color: #3b5998; }
+        .google-button { background-color: #db4437; }
+        .apple-button { background-color: #000; }
+        footer {
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+        .task-container, .profile-container, .dashboard {
+            display: none;
+            margin-top: 20px;
+        }
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .task:last-child {
+            border-bottom: none;
+        }
+        .timer {
+            font-size: 0.9em;
+            color: #888;
+            margin-left: 10px;
+        }
+        .add-task {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .add-task input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-task button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .add-task button:hover {
+            background-color: #218838;
+        }
+        .task button {
+            background-color: #007bff; /* Blue */
+            margin: 0 5px;
+        }
+        .task button:hover {
+            background-color: #0056b3; /* Darker blue */
+        }
+        .task button.delete {
+            background-color: #dc3545; /* Red */
+        }
+        .task button.delete:hover {
+            background-color: #c82333; /* Darker red */
+        }
+        .task button.complete {
+            background-color: #28a745; /* Green */
+        }
+        .task button.complete:hover {
+            background-color: #218838; /* Darker green */
+        }
+        .task button.start-timer {
+            background-color: #ffc107; /* Yellow */
+        }
+        .task button.start-timer:hover {
+            background-color: #e0a800; /* Darker yellow */
+        }
+        .search-task {
+            margin-bottom: 15px;
+        }
+        .search-task input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .progress {
+            height: 20px;
+            background-color: #28a745;
+            width: 0; /* Start at 0% */
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .profile-link {
+            margin: 10px 0;
+            text-align: center;
+            font-size: 1.1em;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .profile-info {
+            display: none;
+            margin-top: 20px;
+        }
+        .dashboard-button {
+            background-color: #007bff; /* Blue */
+        }
+        .dashboard-button:hover {
+            background-color: #0056b3; /* Darker blue */
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <header>
+            <h1>Daily Task Management</h1>
+        </header>
+
+        <form class="login-form" id="loginForm">
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <a href="#" class="forgot-password" onclick="forgotPassword()">Forgot Password?</a>
+            <a href = "dashboard.html"><button type="button" class="login-button" onclick="signIn()">Login</button></a>
+        </form>
+
+        <div class="social-login">
+            <p>Or login with:</p>
+            <button class="facebook-button" onclick="socialSignIn('facebook')">Facebook</button>
+            <button class="google-button" onclick="socialSignIn('google')">Google</button>
+            <button class="apple-button" onclick="socialSignIn('apple')">Apple</button>
+        </div>
+
+
+        <footer>
+            <p>&copy; 2024 Personal Task Manager. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const users = [
+            { username: "user1@example.com", password: "pass1" },
+            { username: "user2@example.com", password: "pass2" },
+            { username: "user3@example.com", password: "pass3" },
+        ];
+       
+        let currentUser = null;
+        let tasks = [];
+
+        function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const user = users.find(user => user.username === email && user.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'flex';
+            } else {
+                alert('Invalid email or password. Please try again.');
+            }
+        }
+
+        function socialSignIn(platform) {
+            alert(`Logged in with ${platform}`);
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+        }
+
+        function showTaskManager() {
+            document.getElementById('taskManager').style.display = 'block';
+            document.getElementById('profileContainer').style.display = 'none';
+        }
+
+        function showProfile() {
+            document.getElementById('profileContainer').style.display = 'block';
+            document.getElementById('taskManager').style.display = 'none';
+        }
+
+        function openCalendar() {
+            alert('Open Calendar functionality is not implemented yet.');
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const timerInput = document.getElementById('timerInput');
+            if (taskInput.value.trim() === '' || timerInput.value.trim() === '') {
+                alert('Please enter a task and a timer.');
+                return;
+            }
+            const timerDuration = parseInt(timerInput.value) * 60; // Convert minutes to seconds
+            const task = {
+                title: taskInput.value,
+                completed: false,
+                timer: timerDuration,
+                intervalId: null,
+                countdownId: null
+            };
+            tasks.push(task);
+            taskInput.value = '';
+            timerInput.value = '';
+            displayTasks();
+        }
+
+        function displayTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+                taskDiv.innerHTML = `
+                    <span>${task.title}</span>
+                    <span class="timer">${formatTime(task.timer)}</span>
+                    <div>
+                        <button class="start-timer" onclick="startTimer(${index})">Start</button>
+                        <button onclick="completeTask(${index})">Complete</button>
+                        <button class="delete" onclick="deleteTask(${index})">Delete</button>
+                    </div>
+                `;
+                taskList.appendChild(taskDiv);
+            });
+            updateProgress();
+        }
+
+        function startTimer(index) {
+            const task = tasks[index];
+            if (!task.countdownId) {
+                task.countdownId = setInterval(() => {
+                    if (task.timer > 0) {
+                        task.timer--;
+                    } else {
+                        alert(`Time's up for task: ${task.title}`);
+                        completeTask(index); // Automatically complete the task when the time is up
+                    }
+                    displayTasks();
+                }, 1000);
+            }
+        }
+
+        function completeTask(index) {
+            const task = tasks[index];
+            task.completed = true;
+            stopTimer(index); // Stop timer when the task is marked complete
+            displayTasks();
+        }
+
+        function deleteTask(index) {
+            stopTimer(index); // Stop timer if deleting the task
+            tasks.splice(index, 1);
+            displayTasks();
+        }
+
+        function stopTimer(index) {
+            const task = tasks[index];
+            if (task.countdownId) {
+                clearInterval(task.countdownId);
+                task.countdownId = null;
+            }
+        }
+
+        function updateProgress() {
+            const completedTasks = tasks.filter(task => task.completed).length;
+            const progress = document.getElementById('progress');
+            const percentage = (completedTasks / tasks.length) * 100 || 0;
+            progress.style.width = `${percentage}%`;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            return `${String(hours).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+        }
+
+        function searchTasks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredTasks = tasks.filter(task => task.title.toLowerCase().includes(searchTerm));
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            filteredTasks.forEach((task, index) => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+                taskDiv.innerHTML = `
+                    <span>${task.title}</span>
+                    <span class="timer">${formatTime(task.timer)}</span>
+                    <div>
+                        <button class="start-timer" onclick="startTimer(${index})">Start</button>
+                        <button onclick="completeTask(${index})">Complete</button>
+                        <button class="delete" onclick="deleteTask(${index})">Delete</button>
+                    </div>
+                `;
+                taskList.appendChild(taskDiv);
+            });
+            updateProgress();
+        }
+
+        function forgotPassword() {
+            alert('Forgot Password functionality is not implemented yet.');
+        }
+
+        function toggleRegister() {
+            alert('Registration functionality is not implemented yet.');
+        }
+    </script>
+</body>
+</html>
